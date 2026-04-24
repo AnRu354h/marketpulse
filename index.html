@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketPulse – Sportswear & Outdoor Simulation</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f4f0;color:#1a1a18;min-height:100vh;padding:1rem}
+.container{max-width:700px;margin:0 auto}
+.screen{display:none}.screen.active{display:block;padding:1.5rem 0}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.btn{display:inline-block;padding:8px 20px;border:0.5px solid rgba(0,0,0,0.25);border-radius:8px;background:transparent;color:#1a1a18;font-size:14px;cursor:pointer;transition:background 0.15s;font-family:inherit}
+.btn:hover{background:rgba(0,0,0,0.06)}.btn:disabled{opacity:0.45;cursor:not-allowed}
+.btn-primary{background:#185FA5;border-color:#185FA5;color:#E6F1FB}.btn-primary:hover{background:#0C447C}
+.btn-danger{background:#A32D2D;border-color:#A32D2D;color:#FCEBEB}.btn-danger:hover{background:#791F1F}
+.badge{display:inline-block;font-size:11px;padding:3px 9px;border-radius:8px;font-weight:500}
+.badge-blue{background:#E6F1FB;color:#0C447C}.badge-green{background:#EAF3DE;color:#3B6D11}
+.badge-amber{background:#FAEEDA;color:#854F0B}.badge-red{background:#FCEBEB;color:#A32D2D}
+.badge-purple{background:#EEEDFE;color:#3C3489}.badge-gray{background:#F1EFE8;color:#5F5E5A}
+.badge-teal{background:#E1F5EE;color:#0F6E56}
+h1{font-size:22px;font-weight:500}h2{font-size:18px;font-weight:500}h3{font-size:16px;font-weight:500}
+label{font-size:13px;color:#666;display:block;margin-bottom:4px}
+input,select{width:100%;padding:8px 10px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:#fff;color:#1a1a18;font-size:14px;font-family:inherit}
+input:focus,select:focus{outline:none;border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,0.15)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.metric{background:#f5f4f0;border-radius:8px;padding:1rem;text-align:center}
+.metric-val{font-size:22px;font-weight:500}.metric-lbl{font-size:12px;color:#888;margin-top:2px}
+.tab-row{display:flex;gap:0;margin-bottom:1.25rem;border-bottom:1px solid rgba(0,0,0,0.1);flex-wrap:wrap}
+.tab{padding:8px 14px;font-size:13px;border:none;background:none;cursor:pointer;color:#888;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit}
+.tab.active{color:#185FA5;border-bottom-color:#185FA5;font-weight:500}
+.event-card{padding:14px 16px;margin-bottom:1rem;border-radius:10px;line-height:1.6}
+.event-r1{background:#E6F1FB;border-left:3px solid #185FA5}
+.event-r2{background:#EEEDFE;border-left:3px solid #534AB7}
+.event-r3{background:#FAEEDA;border-left:3px solid #BA7517}
+.event-r4{background:#FCEBEB;border-left:3px solid #A32D2D}
+.slider-wrap{margin-bottom:12px}
+.slider-row{display:flex;align-items:center;gap:10px}
+.slider-label{min-width:80px;font-size:13px;color:#555;font-weight:500}
+.slider-row input[type=range]{flex:1;accent-color:#185FA5}
+.slider-pct{min-width:36px;text-align:right;font-size:13px;font-weight:500}
+.slider-eur{font-size:11px;color:#888;text-align:right;padding-right:2px;margin-top:1px}
+.option-label{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;padding:10px 12px;border:0.5px solid rgba(0,0,0,0.12);border-radius:8px;cursor:pointer;transition:background 0.12s}
+.option-label:hover{background:#f5f4f0}
+.option-title{font-size:13px;font-weight:500;color:#1a1a18}
+.option-desc{font-size:12px;color:#888;margin-top:2px;line-height:1.4}
+.insight-row{display:flex;gap:8px;margin-bottom:7px;font-size:13px;line-height:1.5}
+.warning-box{background:#FAEEDA;border:0.5px solid #EF9F27;border-radius:8px;padding:10px 14px;font-size:13px;color:#633806;margin-bottom:1rem}
+.success-box{background:#EAF3DE;border:0.5px solid #97C459;border-radius:8px;padding:10px 14px;font-size:13px;color:#27500A;margin-bottom:1rem}
+.phase-indicator{display:flex;gap:6px;margin-bottom:1.5rem}
+.phase-dot{flex:1;height:4px;border-radius:2px;background:#e8e7e3}
+.phase-dot.done{background:#1D9E75}.phase-dot.active{background:#185FA5}
+/* KPI bar */
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.kpi-block{background:#f5f4f0;border-radius:8px;padding:8px 10px}
+.kpi-label{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.kpi-val{font-size:15px;font-weight:500;margin-bottom:3px}
+.kpi-bar-bg{height:5px;border-radius:3px;background:#e8e7e3;overflow:hidden}
+.kpi-bar-fill{height:100%;border-radius:3px;transition:width 0.5s}
+/* Scoreboard rank row */
+.rank-row{border:0.5px solid rgba(0,0,0,0.1);border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden}
+.rank-header{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.rank-num{width:26px;height:26px;border-radius:50%;background:#E6F1FB;color:#0C447C;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;flex-shrink:0}
+.rank-info{flex:1;min-width:0}
+.rank-name{font-weight:500;font-size:14px}
+.rank-sub{font-size:11px;color:#888}
+.rank-score{font-size:16px;font-weight:500;text-align:right}
+.rank-score-lbl{font-size:10px;color:#888;text-align:right}
+.rank-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:0.5px solid rgba(0,0,0,0.07)}
+.rank-kpi{padding:8px 10px;text-align:center;border-right:0.5px solid rgba(0,0,0,0.07)}
+.rank-kpi:last-child{border-right:none}
+.rank-kpi-lbl{font-size:10px;color:#888;margin-bottom:3px}
+.rank-kpi-val{font-size:13px;font-weight:500}
+.rank-kpi-bar{height:3px;border-radius:2px;background:#e8e7e3;overflow:hidden;margin-top:3px}
+.rank-kpi-fill{height:100%;border-radius:2px}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal-box{background:#fff;border-radius:12px;padding:1.5rem;width:320px;max-width:92vw}
+.pin-input{text-align:center;font-size:26px;letter-spacing:10px;font-weight:500;padding:10px}
+.modal-actions{display:flex;gap:8px;margin-top:1rem}
+.modal-actions .btn{flex:1;text-align:center}
+/* Team history */
+.history-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);font-size:13px}
+@media(max-width:500px){
+  .grid2{grid-template-columns:1fr}
+  .tab{padding:7px 9px;font-size:12px}
+  .rank-kpis{grid-template-columns:repeat(2,1fr)}
+  .rank-kpi:nth-child(2){border-right:none}
+  .rank-kpi:nth-child(3){border-top:0.5px solid rgba(0,0,0,0.07)}
+}
+</style>
+  <!-- Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD1vrFth-V418ExFjWWlb7VQP2gD_CuC_E",
+      authDomain: "marketpulse-87384.firebaseapp.com",
+      databaseURL: "https://marketpulse-87384-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "marketpulse-87384",
+      storageBucket: "marketpulse-87384.firebasestorage.app",
+      messagingSenderId: "156059822729",
+      appId: "1:156059822729:web:5d10b5e64266fb66687458"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ─── Firebase sync helpers ────────────────────────────────────────────────
+    window.fbSet = (path, data) => set(ref(db, path), data);
+    window.fbGet = (path) => get(ref(db, path)).then(s => s.val());
+    window.fbUpdate = (path, data) => update(ref(db, path), data);
+    window.fbListen = (path, cb) => onValue(ref(db, path), snap => cb(snap.val()));
+
+    // ─── Wait for page ready then init sync ──────────────────────────────────
+    window.addEventListener('load', () => {
+      // Listen for global game state (round changes)
+      window.fbListen('game/round', (val) => {
+        if (val !== null && val !== state.round) {
+          state.round = val;
+          // Reload team form if team is logged in
+          if (currentTeam) {
+            document.getElementById('submit-confirm').style.display = 'none';
+            document.getElementById('btn-submit').style.display = 'block';
+            renderTeamForm();
+          }
+          // Update GM view if open
+          if (document.getElementById('s-gm').classList.contains('active')) {
+            renderTeamStatus();
+            renderEventCard();
+          }
+        }
+      });
+
+      // Listen for submissions
+      window.fbListen('game/submissions', (val) => {
+        if (!val) return;
+        // Sync submissions into local state
+        TEAM_SLOTS.forEach(slot => {
+          if (val[slot]) {
+            const tm = state.teams[slot];
+            const d = val[slot];
+            if (d.brandName) tm.brandName = d.brandName;
+            if (d.tagline) tm.tagline = d.tagline;
+            if (d.rounds) {
+              Object.keys(d.rounds).forEach(r => {
+                const ri = parseInt(r);
+                const rd = d.rounds[r];
+                if (rd.budget) tm.budgets[ri] = rd.budget;
+                if (rd.ai) tm.ai[ri] = rd.ai;
+                if (rd.targeting) tm.targeting[ri] = rd.targeting;
+                if (rd.message) tm.message[ri] = rd.message;
+                if (rd.submitted && !tm.submitted.includes(ri)) tm.submitted.push(ri);
+              });
+            }
+          }
+        });
+        renderTeamStatus();
+      });
+
+      // Listen for scores
+      window.fbListen('game/scores', (val) => {
+        if (!val) return;
+        if (val.cumKpi) {
+          Object.keys(val.cumKpi).forEach(slot => {
+            if (state.cumKpi[slot]) state.cumKpi[slot] = val.cumKpi[slot];
+          });
+        }
+        if (val.roundKpi) {
+          Object.keys(val.roundKpi).forEach(slot => {
+            if (state.roundKpi[slot]) state.roundKpi[slot] = val.roundKpi[slot];
+          });
+        }
+        if (document.getElementById('gm-board') && document.getElementById('gm-board').style.display !== 'none') {
+          renderScoreboard();
+        }
+        if (currentTeam) renderTeamHistory();
+      });
+    });
+  </script>
+</head>
+<body>
+<div class="container">
+
+<!-- WELCOME -->
+<div id="s-welcome" class="screen active">
+  <div style="text-align:center;padding:1.5rem 0 1.25rem">
+    <div style="font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">AI & Digital Marketing</div>
+    <h1 style="font-size:28px;margin-bottom:4px">MarketPulse</h1>
+    <p style="font-size:14px;color:#888;margin-bottom:1rem">Sportswear & Outdoor · 8 Teams · 4 Rounds · €100,000 per round</p>
+    <div style="margin-bottom:1.5rem">
+      <div style="display:inline-block;background:#EAF3DE;border-radius:8px;padding:6px 16px;font-size:13px;color:#3B6D11">4 rounds · Multiple market events · Live competition</div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-bottom:1rem">
+    <div class="card" style="text-align:center;cursor:pointer" onclick="showGmPin()">
+      <div style="font-size:26px;margin-bottom:6px">🎮</div>
+      <h3>Game Master</h3>
+      <p style="font-size:12px;color:#888;margin-top:4px">Control rounds · Evaluate · Scoreboard</p>
+    </div>
+    <div class="card" style="text-align:center;cursor:pointer" onclick="showTeamLogin()">
+      <div style="font-size:26px;margin-bottom:6px">👥</div>
+      <h3>Team Login</h3>
+      <p style="font-size:12px;color:#888;margin-top:4px">Name your brand · Submit decisions</p>
+    </div>
+  </div>
+  <div class="card" style="background:#f5f4f0;border:none">
+    <p style="font-size:13px;color:#888;line-height:1.6">
+      <strong style="color:#1a1a18">How it works:</strong> The Game Master opens this app on the projector. Each team opens it on their own device, chooses a slot and names their brand. Per round: read the market event, allocate your <strong style="color:#1a1a18">€100,000 budget</strong>, make decisions, submit. Four KPIs are tracked: <strong style="color:#1a1a18">Market Share (50%), Customer Trust (25%), Brand Reputation (15%), Conversion Rate (10%)</strong>.
+    </p>
+  </div>
+</div>
+
+<!-- GAME MASTER -->
+<div id="s-gm" class="screen">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap">
+    <button class="btn" onclick="showScreen('s-welcome')" style="padding:6px 12px;font-size:12px">← Back</button>
+    <h2 style="flex:1">Game Master</h2>
+    <span class="badge badge-blue" id="gm-round-badge">Round 1 / 4</span>
+    <button class="btn btn-danger" onclick="showResetModal()" style="padding:6px 14px;font-size:12px">↺ Reset</button>
+  </div>
+  <div class="phase-indicator" id="phase-dots">
+    <div class="phase-dot active"></div><div class="phase-dot"></div><div class="phase-dot"></div><div class="phase-dot"></div>
+  </div>
+  <div class="tab-row">
+    <button class="tab active" onclick="gmTab(this,'gm-overview')">Overview</button>
+    <button class="tab" onclick="gmTab(this,'gm-event')">Market Event</button>
+    <button class="tab" onclick="gmTab(this,'gm-results')">Evaluation</button>
+    <button class="tab" onclick="gmTab(this,'gm-board')">Scoreboard</button>
+  </div>
+
+  <div id="gm-overview">
+    <div class="card">
+      <h3 style="margin-bottom:1rem">Team submission status</h3>
+      <div id="team-status-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:1rem">
+      <div class="metric"><div class="metric-val" id="gm-submitted">0/8</div><div class="metric-lbl">Submissions received</div></div>
+      <div class="metric"><div class="metric-val" id="gm-time" style="font-variant-numeric:tabular-nums">12:00</div><div class="metric-lbl">Time remaining</div></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="startTimer()" id="btn-timer">▶ Start timer (12 min)</button>
+      <button class="btn" onclick="gmTab(document.querySelectorAll('.tab')[1],'gm-event')">Show market event</button>
+      <button class="btn" onclick="evaluateRound()">Evaluate round →</button>
+    </div>
+  </div>
+
+  <div id="gm-event" style="display:none">
+    <div id="event-display"></div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem">Decision categories this round</h3>
+      <div id="decision-categories" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:0.75rem"></div>
+      <p style="font-size:13px;color:#888;line-height:1.5">Project this screen. Teams now have 10–15 min to enter decisions on their devices. Each team has <strong>€100,000</strong> to allocate this round.</p>
+    </div>
+  </div>
+
+  <div id="gm-results" style="display:none">
+    <div id="results-content"><p style="color:#888;font-size:14px">No evaluation yet. Click "Evaluate round" in Overview.</p></div>
+  </div>
+
+  <div id="gm-board" style="display:none">
+    <div class="card" style="margin-bottom:0.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem">
+        <h3>Overall ranking</h3>
+        <span style="font-size:12px;color:#888">Weighted score = MS×50% + CT×25% + BR×15% + CR×10%</span>
+      </div>
+    </div>
+    <div id="scoreboard"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:0.5rem">
+      <button class="btn btn-primary" onclick="nextRound()" id="btn-next">Start next round →</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM -->
+<div id="s-team" class="screen">
+  <div id="team-login">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem">
+      <button class="btn" onclick="showScreen('s-welcome')" style="padding:6px 12px;font-size:12px">← Back</button>
+      <h2>Team Login</h2>
+    </div>
+    <div class="card">
+      <div style="margin-bottom:1rem">
+        <label>Select your team slot</label>
+        <select id="team-select" onchange="updateBrandPreview()">
+          <option value="">-- Select slot --</option>
+          <option value="Team 1">Team 1</option><option value="Team 2">Team 2</option>
+          <option value="Team 3">Team 3</option><option value="Team 4">Team 4</option>
+          <option value="Team 5">Team 5</option><option value="Team 6">Team 6</option>
+          <option value="Team 7">Team 7</option><option value="Team 8">Team 8</option>
+        </select>
+      </div>
+      <div style="margin-bottom:0.75rem">
+        <label>Your brand name</label>
+        <input type="text" id="brand-name-input" placeholder="e.g. PeakForce, VoltRun, ArcticMove…" maxlength="24">
+      </div>
+      <div style="margin-bottom:1.5rem">
+        <label>Your brand tagline (optional)</label>
+        <input type="text" id="brand-tagline-input" placeholder="e.g. Born for the summit" maxlength="40">
+      </div>
+      <div id="brand-preview-box" style="display:none;margin-bottom:1rem"></div>
+      <button class="btn btn-primary" onclick="loginTeam()" style="width:100%">Enter game →</button>
+    </div>
+  </div>
+
+  <div id="team-game" style="display:none">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:0.5rem;flex-wrap:wrap">
+      <div>
+        <h2 id="team-title" style="margin-bottom:2px">My Brand</h2>
+        <div id="team-brand-sub" style="font-size:12px;color:#888"></div>
+      </div>
+      <div style="flex:1"></div>
+      <span class="badge badge-blue" id="team-round-badge">Round 1</span>
+      <span class="badge badge-gray" id="team-timer-badge" style="font-variant-numeric:tabular-nums">12:00</span>
+    </div>
+    <div class="phase-indicator" id="team-phase-dots">
+      <div class="phase-dot active"></div><div class="phase-dot"></div><div class="phase-dot"></div><div class="phase-dot"></div>
+    </div>
+
+    <!-- KPI legend -->
+    <div class="card" style="background:#f5f4f0;border:none;padding:0.75rem 1rem;margin-bottom:1rem">
+      <div style="font-size:11px;color:#888;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">Your KPIs this game</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        <div style="text-align:center"><div style="font-size:10px;color:#185FA5;font-weight:500">MARKET SHARE</div><div style="font-size:11px;color:#888">50%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:#1D9E75;font-weight:500">CUSTOMER TRUST</div><div style="font-size:11px;color:#888">25%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:#534AB7;font-weight:500">BRAND REP.</div><div style="font-size:11px;color:#888">15%</div></div>
+        <div style="text-align:center"><div style="font-size:10px;color:#BA7517;font-weight:500">CONV. RATE</div><div style="font-size:11px;color:#888">10%</div></div>
+      </div>
+    </div>
+
+    <div id="team-event" style="margin-bottom:1.25rem"></div>
+    <div id="team-form"></div>
+    <div style="margin-top:1.5rem">
+      <button class="btn btn-primary" onclick="submitTeam()" id="btn-submit" style="width:100%">Submit decisions ✓</button>
+    </div>
+    <div id="submit-confirm" style="display:none;margin-top:1rem">
+      <div class="success-box">✓ Decisions submitted! Waiting for the Game Master to start the next round...</div>
+    </div>
+    <div id="team-history" style="margin-top:1rem"></div>
+  </div>
+</div>
+
+<!-- GM PIN MODAL -->
+<div id="gm-pin-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h3 style="margin-bottom:0.5rem">Game Master login</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:1rem;line-height:1.5">Enter the Game Master PIN to access the control panel.</p>
+    <input type="password" class="pin-input" id="gm-pin-input" maxlength="4" placeholder="····" autocomplete="off" onkeydown="if(event.key==='Enter')confirmGmPin()">
+    <div id="gm-pin-error" style="color:#A32D2D;font-size:12px;margin-top:6px;min-height:18px;text-align:center"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeGmPin()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmGmPin()">Enter</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET MODAL -->
+<div id="reset-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <h3 style="margin-bottom:0.5rem">Reset game</h3>
+    <p style="font-size:13px;color:#888;margin-bottom:1rem;line-height:1.5">Resets all scores, brand names, submissions and returns to Round 1. Enter Game Master PIN to confirm.</p>
+    <input type="password" class="pin-input" id="pin-input" maxlength="4" placeholder="····" autocomplete="off" onkeydown="if(event.key==='Enter')confirmReset()">
+    <div id="pin-error" style="color:#A32D2D;font-size:12px;margin-top:6px;min-height:18px;text-align:center"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeResetModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmReset()">Reset everything</button>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const RESET_PIN = "0000";
+const BUDGET = 100000;
+const TEAM_SLOTS = ["Team 1","Team 2","Team 3","Team 4","Team 5","Team 6","Team 7","Team 8"];
+const TEAM_COLORS = ["#185FA5","#3B6D11","#854F0B","#0F6E56","#3C3489","#A32D2D","#0C447C","#444441"];
+const TEAM_BGS   = ["#E6F1FB","#EAF3DE","#FAEEDA","#E1F5EE","#EEEDFE","#FCEBEB","#E6F1FB","#F1EFE8"];
+
+const CHANNELS = ["SEA","Social","Content","Email"];
+
+const AI_OPTIONS = [
+  {id:"full",   label:"Fully automated",     desc:"AI handles bidding, targeting & creatives end-to-end"},
+  {id:"hybrid", label:"Hybrid (AI + human)", desc:"AI assists, team makes final decisions"},
+  {id:"manual", label:"Manual only",          desc:"No AI tools — full manual campaign management"},
+];
+const TARGETS = [
+  {id:"gen_z",  label:"Gen Z (18–25)",        desc:"TikTok-native, trend-driven, price-sensitive"},
+  {id:"millen", label:"Millennials (26–40)",   desc:"Quality-conscious, brand-loyal, Instagram"},
+  {id:"broad",  label:"Broad audience",        desc:"Maximum reach, lower CPM, low conversion rate"},
+  {id:"loyal",  label:"Existing customers",    desc:"High conversion, low acquisition cost"},
+];
+const MESSAGES = [
+  {id:"price",   label:"Price & Deals",             desc:"'Save up to 50%' – direct purchase incentives"},
+  {id:"quality", label:"Quality & Sustainability",  desc:"Values, craftsmanship, and longevity front and center"},
+  {id:"emotion", label:"Lifestyle & Emotion",       desc:"Aspiration, identity, and belonging"},
+  {id:"ug",      label:"User-Generated Content",    desc:"Real customers, authenticity, community trust"},
+];
+
+const ROUNDS = [
+  {
+    num:1, title:"Round 1 – Market Launch", eventType:"Normal Market Start",
+    cls:"event-r1", tagCls:"badge-blue",
+    text:"The sportswear & outdoor market is heating up. All 8 brands launch simultaneously. First impressions count — customers are discovering brands for the first time. Allocate your €100,000 wisely and decide how much to rely on AI automation.",
+    cats:["Budget Allocation","AI Tool Usage"], dec:["budget","ai"],
+    insight:[
+      "Balanced budget allocation performs well when the market is still undefined.",
+      "SEA drives immediate traffic and direct sales from day one.",
+      "Content marketing builds brand recognition that pays off in later rounds.",
+      "AI automation gives a small but meaningful efficiency boost at launch.",
+    ],
+    kpi:(b,ai,tgt,msg)=>{
+      const base = b.SEA*1.2 + b.Social*1.1 + b.Content*1.0 + b.Email*1.0;
+      const aiM = {full:1.12,hybrid:1.05,manual:0.95}[ai]||1;
+      const ms  = base * aiM;
+      const ct  = 60 + ({full:-5,hybrid:5,manual:10}[ai]||0);
+      const br  = 55 + (b.Content||0)*0.3;
+      const cr  = 50 + (b.SEA||0)*0.4 + ({full:8,hybrid:4,manual:0}[ai]||0);
+      return {ms, ct:clamp(ct), br:clamp(br), cr:clamp(cr)};
+    }
+  },
+  {
+    num:2, title:"Round 2 – AI Boom", eventType:"AI Capabilities Surge",
+    cls:"event-r2", tagCls:"badge-purple",
+    text:"AI marketing tools have made a giant leap. Automated bidding, personalised creatives and predictive audience modelling now deliver measurable results in the sportswear space. Brands that embrace automation see strong gains — but who are you targeting?",
+    cats:["Budget Allocation","AI Tool Usage","Audience Targeting"], dec:["budget","ai","targeting"],
+    insight:[
+      "Full AI automation delivers the highest market share this round (+20%).",
+      "Millennials respond best to AI-personalised product recommendations.",
+      "Manual-only teams fall behind — the AI efficiency gap is real.",
+      "But watch your Trust score: heavy automation starts to raise eyebrows.",
+      "Key tension: AI works brilliantly now — will that last?",
+    ],
+    kpi:(b,ai,tgt,msg)=>{
+      const base = b.SEA*1.3 + b.Social*1.25 + b.Content*1.0 + b.Email*0.9;
+      const aiM = {full:1.20,hybrid:1.08,manual:0.88}[ai]||1;
+      const tgM = {gen_z:1.1,millen:1.2,broad:1.0,loyal:0.95}[tgt]||1;
+      const ms  = base * aiM * tgM;
+      const ct  = 65 + ({full:-15,hybrid:0,manual:10}[ai]||0) + ({loyal:10,millen:5,broad:0,gen_z:-5}[tgt]||0);
+      const br  = 60 + ({full:-5,hybrid:5,manual:8}[ai]||0) + (b.Content||0)*0.25;
+      const cr  = 55 + ({full:15,hybrid:8,manual:-5}[ai]||0) + ({millen:8,gen_z:5,broad:0,loyal:10}[tgt]||0);
+      return {ms, ct:clamp(ct), br:clamp(br), cr:clamp(cr)};
+    }
+  },
+  {
+    num:3, title:"Round 3 – Privacy Backlash", eventType:"Public Privacy Concerns",
+    cls:"event-r3", tagCls:"badge-amber",
+    text:"A major scandal: a fitness tracking app leaked user health & location data to advertisers. The story went viral. Consumers are furious about AI-powered targeting. Brands using heavy automation face public backlash. Trust and transparency are now your most important competitive advantages.",
+    cats:["Budget Allocation","AI Tool Usage","Audience Targeting"], dec:["budget","ai","targeting"],
+    insight:[
+      "Full AI automation backfires — Customer Trust tanks (−20 pts).",
+      "Manual and hybrid teams recover credibility and gain market share.",
+      "Loyal customers are far more forgiving than new audiences.",
+      "Content and Email strongly outperform paid channels this round.",
+      "Core lesson: the AI strength from R2 became R3's biggest liability.",
+    ],
+    kpi:(b,ai,tgt,msg)=>{
+      const base = b.Content*1.6 + b.Email*1.4 + b.Social*0.9 + b.SEA*0.8;
+      const aiM = {full:0.85,hybrid:1.05,manual:1.15}[ai]||1;
+      const tgM = {loyal:1.35,millen:1.1,broad:0.9,gen_z:0.85}[tgt]||1;
+      const ms  = base * aiM * tgM;
+      const ct  = 70 + ({full:-20,hybrid:5,manual:15}[ai]||0) + ({loyal:12,millen:5,broad:-5,gen_z:-10}[tgt]||0);
+      const br  = 60 + ({full:-15,hybrid:5,manual:12}[ai]||0) + (b.Content||0)*0.35;
+      const cr  = 50 + ({full:-10,hybrid:5,manual:8}[ai]||0) + ({loyal:15,millen:8,broad:-5,gen_z:-5}[tgt]||0);
+      return {ms, ct:clamp(ct), br:clamp(br), cr:clamp(cr)};
+    }
+  },
+  {
+    num:4, title:"Round 4 – Economic Crisis", eventType:"Consumer Spending Downturn",
+    cls:"event-r4", tagCls:"badge-red",
+    text:"A recession has hit discretionary spending hard. Customers cut back — but quality outdoor gear is seen as a long-term investment by the right audience. Every euro of your €100,000 must count. Your campaign message and audience choice are more decisive than ever.",
+    cats:["Budget Allocation","AI Tool Usage","Audience Targeting","Campaign Message"], dec:["budget","ai","targeting","message"],
+    insight:[
+      "Quality & sustainability messaging resonates most — gear as investment.",
+      "Price-focused messages erode brand reputation in the outdoor segment.",
+      "Loyal customers convert 40% better than new audiences in a downturn.",
+      "Email and Content deliver the highest ROI when budgets are tight.",
+      "Teams that adapted their message strategy outscored others by 30–40%.",
+    ],
+    kpi:(b,ai,tgt,msg)=>{
+      const base = b.Email*1.5 + b.Content*1.4 + b.SEA*0.9 + b.Social*1.0;
+      const aiM = {full:1.0,hybrid:1.08,manual:1.0}[ai]||1;
+      const tgM = {loyal:1.4,millen:1.15,broad:0.9,gen_z:0.85}[tgt]||1;
+      const mgM = {quality:1.4,ug:1.2,emotion:1.0,price:0.75}[msg]||1;
+      const ms  = base * aiM * tgM * mgM;
+      const ct  = 65 + ({quality:15,ug:10,emotion:0,price:-15}[msg]||0) + ({loyal:12,millen:5,broad:-5,gen_z:-5}[tgt]||0);
+      const br  = 55 + ({quality:20,ug:12,emotion:8,price:-20}[msg]||0) + (b.Content||0)*0.3;
+      const cr  = 50 + ({full:5,hybrid:10,manual:5}[ai]||0) + ({loyal:15,millen:8,broad:-5,gen_z:-8}[tgt]||0) + ({quality:5,ug:8,emotion:3,price:-10}[msg]||0);
+      return {ms, ct:clamp(ct), br:clamp(br), cr:clamp(cr)};
+    }
+  },
+];
+
+function clamp(v){ return Math.min(100, Math.max(0, v)); }
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let state = {
+  round: 0,
+  teams: {},
+  cumKpi: {},   // {ms, ct, br, cr} cumulative sums
+  roundKpi: {}, // array of per-round kpi objects
+  timerInterval: null,
+  timerSec: 720,
+};
+
+TEAM_SLOTS.forEach((slot,i) => {
+  state.teams[slot] = {
+    slot, brandName:'', tagline:'',
+    color: TEAM_COLORS[i], bg: TEAM_BGS[i],
+    submitted:[], budgets:{}, ai:{}, targeting:{}, message:{}
+  };
+  state.cumKpi[slot]   = {ms:0, ct:0, br:0, cr:0, rounds:0};
+  state.roundKpi[slot] = [];
+});
+
+let currentTeam = null;
+
+// ─── Utilities ────────────────────────────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showGamemaster(){ showScreen('s-gm'); renderTeamStatus(); renderEventCard(); renderScoreboard(); }
+function showTeamLogin(){
+  showScreen('s-team');
+  document.getElementById('team-login').style.display='block';
+  document.getElementById('team-game').style.display='none';
+}
+function gmTab(btn,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  ['gm-overview','gm-event','gm-results','gm-board'].forEach(s=>{
+    document.getElementById(s).style.display = s===id?'block':'none';
+  });
+}
+function fmt(n){ return '€'+Math.round(n).toLocaleString('de-DE'); }
+function pct(n,d=1){ return (Math.round(n*Math.pow(10,d))/Math.pow(10,d))+"%"; }
+function updatePhaseDots(id){
+  document.querySelectorAll('#'+id+' .phase-dot').forEach((d,i)=>{
+    d.className='phase-dot'+(i<state.round?' done':i===state.round?' active':'');
+  });
+}
+function displayName(slot){
+  const t = state.teams[slot];
+  return t.brandName || slot;
+}
+
+// ─── Brand preview in login ───────────────────────────────────────────────────
+function updateBrandPreview(){
+  const sel = document.getElementById('team-select').value;
+  const box = document.getElementById('brand-preview-box');
+  if(!sel){ box.style.display='none'; return; }
+  const t = state.teams[sel];
+  const taken = t.brandName && t.submitted.length > 0;
+  box.style.display='block';
+  box.innerHTML = taken
+    ? `<div style="background:#FAEEDA;border-radius:8px;padding:8px 12px;font-size:13px;color:#633806">This slot already has a brand. Choose another slot or continue as this brand.</div>`
+    : `<div style="background:${t.bg};border-radius:8px;padding:8px 12px;font-size:13px;color:${t.color}">Slot available ✓</div>`;
+}
+
+// ─── Team status ──────────────────────────────────────────────────────────────
+function renderTeamStatus(){
+  const grid = document.getElementById('team-status-grid');
+  let count = 0;
+  grid.innerHTML = TEAM_SLOTS.map(slot=>{
+    const t = state.teams[slot];
+    const sub = t.submitted.includes(state.round);
+    if(sub) count++;
+    const name = displayName(slot);
+    return `<div style="padding:8px;border-radius:8px;background:${sub?'#EAF3DE':'#f5f4f0'};border:0.5px solid ${sub?'#97C459':'rgba(0,0,0,0.1)'};text-align:center">
+      <div style="font-size:11px;font-weight:500;color:${sub?'#3B6D11':'#666'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+      <div style="font-size:10px;color:${sub?'#3B6D11':'#aaa'}">${sub?'✓ Submitted':'Pending'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('gm-submitted').textContent = count+'/8';
+}
+
+// ─── Event card ───────────────────────────────────────────────────────────────
+function renderEventCard(){
+  const r = ROUNDS[state.round];
+  document.getElementById('gm-round-badge').textContent = 'Round '+(state.round+1)+' / 4';
+  document.getElementById('event-display').innerHTML = `
+    <div class="event-card ${r.cls}">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:4px;opacity:0.75">${r.eventType}</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:6px">${r.title}</div>
+      <p style="font-size:13px;opacity:0.9">${r.text}</p>
+    </div>`;
+  document.getElementById('decision-categories').innerHTML = r.cats.map(c=>`<span class="badge ${r.tagCls}">${c}</span>`).join('');
+  updatePhaseDots('phase-dots');
+}
+
+// ─── Timer ────────────────────────────────────────────────────────────────────
+function startTimer(){
+  if(state.timerInterval) return;
+  state.timerSec = 720;
+  const btn = document.getElementById('btn-timer');
+  btn.textContent='⏱ Timer running…'; btn.disabled=true;
+  state.timerInterval = setInterval(()=>{
+    state.timerSec--;
+    const m = Math.floor(state.timerSec/60).toString().padStart(2,'0');
+    const s = (state.timerSec%60).toString().padStart(2,'0');
+    const str = m+':'+s;
+    document.getElementById('gm-time').textContent = str;
+    const tb = document.getElementById('team-timer-badge');
+    if(tb) tb.textContent = str;
+    if(state.timerSec<=0){
+      clearInterval(state.timerInterval); state.timerInterval=null;
+      btn.textContent='Time is up!';
+    }
+  }, 1000);
+}
+
+// ─── Weighted score ───────────────────────────────────────────────────────────
+function weightedScore(kpi){
+  // ms is raw (needs to be converted to % later), ct/br/cr are 0-100
+  // For ranking we use the already-converted share for ms
+  return kpi.msShare*0.5 + kpi.ct*0.25 + kpi.br*0.15 + kpi.cr*0.10;
+}
+
+// ─── Evaluate ─────────────────────────────────────────────────────────────────
+function evaluateRound(){
+  TEAM_SLOTS.forEach(slot=>{ if(!state.teams[slot].submitted.includes(state.round)) autoFill(slot); });
+  const r = ROUNDS[state.round];
+
+  // compute raw KPI objects
+  const rawKpi = {};
+  TEAM_SLOTS.forEach(slot=>{
+    const tm = state.teams[slot];
+    const bd = tm.budgets[state.round]||{SEA:25,Social:25,Content:25,Email:25};
+    const k = r.kpi(bd, tm.ai[state.round]||'hybrid', tm.targeting[state.round]||'broad', tm.message[state.round]||'emotion');
+    // add small noise
+    k.ms += Math.random()*14-7;
+    k.ct += Math.random()*6-3;
+    k.br += Math.random()*6-3;
+    k.cr += Math.random()*6-3;
+    k.ms = Math.max(0, k.ms);
+    k.ct = clamp(k.ct); k.br = clamp(k.br); k.cr = clamp(k.cr);
+    rawKpi[slot] = k;
+  });
+
+  // convert ms to market share %
+  const totalMs = Object.values(rawKpi).reduce((a,v)=>a+v.ms, 0);
+  TEAM_SLOTS.forEach(slot=>{
+    rawKpi[slot].msShare = totalMs>0 ? (rawKpi[slot].ms/totalMs)*100 : 12.5;
+  });
+
+  // accumulate
+  TEAM_SLOTS.forEach(slot=>{
+    const k = rawKpi[slot];
+    state.roundKpi[slot].push({...k});
+    const c = state.cumKpi[slot];
+    c.ms  += k.msShare;
+    c.ct  += k.ct;
+    c.br  += k.br;
+    c.cr  += k.cr;
+    c.rounds++;
+  });
+
+  // results table
+  const sorted = [...TEAM_SLOTS].sort((a,b)=>rawKpi[b].msShare-rawKpi[a].msShare);
+  let rows = sorted.map(slot=>{
+    const tm = state.teams[slot];
+    const k = rawKpi[slot];
+    const aiL  = AI_OPTIONS.find(x=>x.id===tm.ai[state.round])?.label.split(' ')[0]||'—';
+    const tgtL = TARGETS.find(x=>x.id===tm.targeting[state.round])?.label.split(' ')[0]||'—';
+    const msgL = r.dec.includes('message')?(MESSAGES.find(x=>x.id===tm.message[state.round])?.label.split(' ')[0]||'—'):'—';
+    return `<tr style="border-bottom:0.5px solid rgba(0,0,0,0.07)">
+      <td style="padding:7px 4px">
+        <div style="font-size:12px;font-weight:500;color:${tm.color}">${displayName(slot)}</div>
+        <div style="font-size:10px;color:#888">${slot}</div>
+      </td>
+      <td style="padding:7px 4px;font-size:11px;color:#555">${aiL}</td>
+      <td style="padding:7px 4px;font-size:11px;color:#555">${tgtL}</td>
+      <td style="padding:7px 4px;font-size:11px;color:#555">${msgL}</td>
+      <td style="padding:7px 4px;font-size:13px;font-weight:500;color:#185FA5">${pct(k.msShare)}</td>
+      <td style="padding:7px 4px;font-size:13px;font-weight:500;color:#1D9E75">${Math.round(k.ct)}</td>
+      <td style="padding:7px 4px;font-size:13px;font-weight:500;color:#534AB7">${Math.round(k.br)}</td>
+      <td style="padding:7px 4px;font-size:13px;font-weight:500;color:#BA7517">${Math.round(k.cr)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('results-content').innerHTML = `
+    <div class="success-box">Round ${state.round+1} evaluated!</div>
+    <div class="card" style="margin-bottom:1rem;overflow-x:auto">
+      <h3 style="margin-bottom:1rem">Results – Round ${state.round+1}</h3>
+      <table style="width:100%;min-width:480px">
+        <tr style="border-bottom:0.5px solid rgba(0,0,0,0.1)">
+          <th style="text-align:left;font-size:10px;color:#888;padding-bottom:8px;font-weight:500">Brand</th>
+          <th style="text-align:left;font-size:10px;color:#888;padding-bottom:8px;font-weight:500">AI</th>
+          <th style="text-align:left;font-size:10px;color:#888;padding-bottom:8px;font-weight:500">Audience</th>
+          <th style="text-align:left;font-size:10px;color:#888;padding-bottom:8px;font-weight:500">Message</th>
+          <th style="text-align:left;font-size:10px;color:#185FA5;padding-bottom:8px;font-weight:500">Mkt Share</th>
+          <th style="text-align:left;font-size:10px;color:#1D9E75;padding-bottom:8px;font-weight:500">Trust</th>
+          <th style="text-align:left;font-size:10px;color:#534AB7;padding-bottom:8px;font-weight:500">Reputation</th>
+          <th style="text-align:left;font-size:10px;color:#BA7517;padding-bottom:8px;font-weight:500">Conv.</th>
+        </tr>
+        ${rows}
+      </table>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem">Debriefing insights – ${r.title}</h3>
+      ${r.insight.map(t=>`<div class="insight-row"><span style="color:#1D9E75;font-weight:500;flex-shrink:0">→</span><span style="color:#555">${t}</span></div>`).join('')}
+    </div>`;
+
+  renderScoreboard();
+  gmTab(document.querySelectorAll('.tab')[2],'gm-results');
+  renderTeamHistory();
+  // Sync scores to Firebase
+  if (window.fbSet) {
+    window.fbSet('game/scores', {
+      cumKpi: state.cumKpi,
+      roundKpi: state.roundKpi
+    });
+  }
+}
+
+function autoFill(slot){
+  const tm = state.teams[slot];
+  if(!tm.budgets[state.round]) tm.budgets[state.round]={SEA:25,Social:25,Content:25,Email:25};
+  if(!tm.ai[state.round]) tm.ai[state.round]='manual';
+  if(!tm.targeting[state.round]) tm.targeting[state.round]='broad';
+  if(!tm.message[state.round]) tm.message[state.round]='emotion';
+  if(!tm.submitted.includes(state.round)) tm.submitted.push(state.round);
+}
+
+// ─── Scoreboard ───────────────────────────────────────────────────────────────
+function renderScoreboard(){
+  const rounds = state.cumKpi[TEAM_SLOTS[0]].rounds;
+  if(rounds === 0){
+    document.getElementById('scoreboard').innerHTML = '<p style="color:#888;font-size:13px">No rounds evaluated yet.</p>';
+    return;
+  }
+  // compute weighted scores for sorting
+  const scored = TEAM_SLOTS.map(slot=>{
+    const c = state.cumKpi[slot];
+    const avgMs = c.ms / rounds;
+    const avgCt = c.ct / rounds;
+    const avgBr = c.br / rounds;
+    const avgCr = c.cr / rounds;
+    const ws = avgMs*0.5 + avgCt*0.25 + avgBr*0.15 + avgCr*0.10;
+    return {slot, avgMs, avgCt, avgBr, avgCr, ws};
+  }).sort((a,b)=>b.ws-a.ws);
+
+  const maxMs = Math.max(...scored.map(x=>x.avgMs));
+  const maxCt = Math.max(...scored.map(x=>x.avgCt));
+  const maxBr = Math.max(...scored.map(x=>x.avgBr));
+  const maxCr = Math.max(...scored.map(x=>x.avgCr));
+
+  document.getElementById('scoreboard').innerHTML = scored.map((s,i)=>{
+    const tm = state.teams[s.slot];
+    const msW  = maxMs>0 ? Math.round(s.avgMs/maxMs*100) : 0;
+    const ctW  = maxCt>0 ? Math.round(s.avgCt/maxCt*100) : 0;
+    const brW  = maxBr>0 ? Math.round(s.avgBr/maxBr*100) : 0;
+    const crW  = maxCr>0 ? Math.round(s.avgCr/maxCr*100) : 0;
+    return `<div class="rank-row" style="${i===0?'border-color:'+tm.color:''}" >
+      <div class="rank-header">
+        <div class="rank-num" style="${i===0?'background:'+tm.bg+';color:'+tm.color:''}">${i+1}</div>
+        <div class="rank-info">
+          <div class="rank-name" style="color:${tm.color}">${displayName(s.slot)}</div>
+          <div class="rank-sub">${s.slot}${tm.tagline?' · '+tm.tagline:''}</div>
+        </div>
+        <div>
+          <div class="rank-score" style="color:${tm.color}">${pct(s.ws,1)}</div>
+          <div class="rank-score-lbl">weighted score</div>
+        </div>
+      </div>
+      <div class="rank-kpis">
+        <div class="rank-kpi">
+          <div class="rank-kpi-lbl" style="color:#185FA5">Market Share</div>
+          <div class="rank-kpi-val" style="color:#185FA5">${pct(s.avgMs)}</div>
+          <div class="rank-kpi-bar"><div class="rank-kpi-fill" style="width:${msW}%;background:#185FA5"></div></div>
+        </div>
+        <div class="rank-kpi">
+          <div class="rank-kpi-lbl" style="color:#1D9E75">Customer Trust</div>
+          <div class="rank-kpi-val" style="color:#1D9E75">${Math.round(s.avgCt)}/100</div>
+          <div class="rank-kpi-bar"><div class="rank-kpi-fill" style="width:${ctW}%;background:#1D9E75"></div></div>
+        </div>
+        <div class="rank-kpi">
+          <div class="rank-kpi-lbl" style="color:#534AB7">Brand Reputation</div>
+          <div class="rank-kpi-val" style="color:#534AB7">${Math.round(s.avgBr)}/100</div>
+          <div class="rank-kpi-bar"><div class="rank-kpi-fill" style="width:${brW}%;background:#534AB7"></div></div>
+        </div>
+        <div class="rank-kpi">
+          <div class="rank-kpi-lbl" style="color:#BA7517">Conversion Rate</div>
+          <div class="rank-kpi-val" style="color:#BA7517">${Math.round(s.avgCr)}/100</div>
+          <div class="rank-kpi-bar"><div class="rank-kpi-fill" style="width:${crW}%;background:#BA7517"></div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Next round ───────────────────────────────────────────────────────────────
+function nextRound(){
+  if(state.round>=3){
+    const btn=document.getElementById('btn-next');
+    btn.textContent='🏁 Game over!'; btn.disabled=true; return;
+  }
+  state.round++;
+  // Sync round to Firebase so all team devices update automatically
+  if (window.fbSet) window.fbSet('game/round', state.round);
+  if(state.timerInterval){ clearInterval(state.timerInterval); state.timerInterval=null; }
+  state.timerSec=720;
+  document.getElementById('gm-time').textContent='12:00';
+  const btn=document.getElementById('btn-timer');
+  btn.textContent='▶ Start timer (12 min)'; btn.disabled=false;
+  renderTeamStatus(); renderEventCard();
+  gmTab(document.querySelectorAll('.tab')[0],'gm-overview');
+  if(currentTeam) renderTeamForm();
+}
+
+// ─── Reset ────────────────────────────────────────────────────────────────────
+function showResetModal(){
+  document.getElementById('pin-input').value='';
+  document.getElementById('pin-error').textContent='';
+  document.getElementById('reset-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('pin-input').focus(),100);
+}
+function closeResetModal(){ document.getElementById('reset-modal').style.display='none'; }
+function confirmReset(){
+  if(document.getElementById('pin-input').value !== RESET_PIN){
+    document.getElementById('pin-error').textContent='Incorrect PIN. Try again.';
+    document.getElementById('pin-input').value='';
+    return;
+  }
+  closeResetModal();
+  state.round=0;
+  if(state.timerInterval){ clearInterval(state.timerInterval); state.timerInterval=null; }
+  state.timerSec=720;
+  TEAM_SLOTS.forEach((slot,i)=>{
+    state.teams[slot]={ slot, brandName:'', tagline:'', color:TEAM_COLORS[i], bg:TEAM_BGS[i], submitted:[], budgets:{}, ai:{}, targeting:{}, message:{} };
+    state.cumKpi[slot]={ms:0,ct:0,br:0,cr:0,rounds:0};
+    state.roundKpi[slot]=[];
+  });
+  currentTeam=null;
+  document.getElementById('results-content').innerHTML='<p style="color:#888;font-size:14px">No evaluation yet.</p>';
+  document.getElementById('gm-time').textContent='12:00';
+  document.getElementById('btn-timer').textContent='▶ Start timer (12 min)';
+  document.getElementById('btn-timer').disabled=false;
+  document.getElementById('btn-next').textContent='Start next round →';
+  document.getElementById('btn-next').disabled=false;
+  renderTeamStatus(); renderEventCard(); renderScoreboard();
+  gmTab(document.querySelectorAll('.tab')[0],'gm-overview');
+  // Clear Firebase
+  if (window.fbSet) {
+    window.fbSet('game/round', 0);
+    window.fbSet('game/submissions', null);
+    window.fbSet('game/scores', null);
+  }
+}
+
+// ─── Team login ───────────────────────────────────────────────────────────────
+function loginTeam(){
+  const slot = document.getElementById('team-select').value;
+  const name = document.getElementById('brand-name-input').value.trim();
+  const tag  = document.getElementById('brand-tagline-input').value.trim();
+  if(!slot){ alert('Please select a team slot!'); return; }
+  if(!name){ alert('Please enter a brand name!'); return; }
+  currentTeam = slot;
+  state.teams[slot].brandName = name;
+  state.teams[slot].tagline   = tag;
+  // Sync brand to Firebase
+  if (window.fbSet) {
+    window.fbSet('game/submissions/' + slot.replace(' ','_') + '/brandName', name);
+    window.fbSet('game/submissions/' + slot.replace(' ','_') + '/tagline', tag || '');
+  }
+  document.getElementById('team-login').style.display='none';
+  document.getElementById('team-game').style.display='block';
+  renderTeamForm();
+}
+
+// ─── Team form ────────────────────────────────────────────────────────────────
+function renderTeamForm(){
+  if(!currentTeam) return;
+  const r  = ROUNDS[state.round];
+  const tm = state.teams[currentTeam];
+  document.getElementById('team-title').textContent = displayName(currentTeam);
+  document.getElementById('team-brand-sub').textContent = (tm.tagline||'') + (tm.tagline?' · ':'')+currentTeam;
+  document.getElementById('team-round-badge').textContent = 'Round '+(state.round+1);
+  updatePhaseDots('team-phase-dots');
+  document.getElementById('team-event').innerHTML = `
+    <div class="event-card ${r.cls}">
+      <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.6px;opacity:0.7;margin-bottom:4px">${r.eventType}</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:6px">${r.title}</div>
+      <p style="font-size:13px;opacity:0.9">${r.text}</p>
+    </div>`;
+  const sub = tm.submitted.includes(state.round);
+  document.getElementById('btn-submit').style.display = sub?'none':'block';
+  document.getElementById('submit-confirm').style.display = sub?'block':'none';
+
+  let html='';
+
+  if(r.dec.includes('budget')){
+    const sv = tm.budgets[state.round]||{SEA:25,Social:25,Content:25,Email:25};
+    html+=`<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem">
+        <h3>Budget allocation</h3>
+        <span style="font-size:12px;color:#888">Total: €100,000</span>
+      </div>
+      <div id="budget-warning" class="warning-box" style="display:none">Total must equal exactly 100%</div>
+      ${CHANNELS.map(c=>`<div class="slider-wrap">
+        <div class="slider-row">
+          <span class="slider-label">${c}</span>
+          <input type="range" min="0" max="80" step="5" value="${sv[c]||25}" id="sl-${c}" oninput="updateBudget()">
+          <span class="slider-pct" id="sp-${c}">${sv[c]||25}%</span>
+        </div>
+        <div style="text-align:right"><span class="slider-eur" id="se-${c}">${fmt((sv[c]||25)*1000)}</span></div>
+      </div>`).join('')}
+      <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:0.5px solid rgba(0,0,0,0.08);margin-top:4px">
+        <span style="font-size:13px;color:#666">Total allocated:</span>
+        <span id="budget-total" style="font-size:13px;font-weight:500">100% · €100,000</span>
+      </div>
+    </div>`;
+  }
+  if(r.dec.includes('ai')){
+    const sv=tm.ai[state.round]||'hybrid';
+    html+=`<div class="card"><h3 style="margin-bottom:0.75rem">AI tool usage</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:0.75rem;line-height:1.5">Your choice affects not only Market Share, but also Customer Trust and Brand Reputation.</p>
+      ${AI_OPTIONS.map(o=>`<label class="option-label">
+        <input type="radio" name="ai" value="${o.id}" ${sv===o.id?'checked':''} style="width:auto;margin-top:2px;flex-shrink:0;accent-color:#185FA5">
+        <div><div class="option-title">${o.label}</div><div class="option-desc">${o.desc}</div></div>
+      </label>`).join('')}
+    </div>`;
+  }
+  if(r.dec.includes('targeting')){
+    const sv=tm.targeting[state.round]||'broad';
+    html+=`<div class="card"><h3 style="margin-bottom:0.75rem">Audience targeting</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:0.75rem;line-height:1.5">Different audiences respond differently to AI and channel choices — especially after privacy events.</p>
+      ${TARGETS.map(o=>`<label class="option-label">
+        <input type="radio" name="tgt" value="${o.id}" ${sv===o.id?'checked':''} style="width:auto;margin-top:2px;flex-shrink:0;accent-color:#185FA5">
+        <div><div class="option-title">${o.label}</div><div class="option-desc">${o.desc}</div></div>
+      </label>`).join('')}
+    </div>`;
+  }
+  if(r.dec.includes('message')){
+    const sv=tm.message[state.round]||'emotion';
+    html+=`<div class="card"><h3 style="margin-bottom:0.75rem">Campaign message</h3>
+      <p style="font-size:12px;color:#888;margin-bottom:0.75rem;line-height:1.5">Your message shapes Brand Reputation and Customer Trust — not just short-term conversion.</p>
+      ${MESSAGES.map(o=>`<label class="option-label">
+        <input type="radio" name="msg" value="${o.id}" ${sv===o.id?'checked':''} style="width:auto;margin-top:2px;flex-shrink:0;accent-color:#185FA5">
+        <div><div class="option-title">${o.label}</div><div class="option-desc">${o.desc}</div></div>
+      </label>`).join('')}
+    </div>`;
+  }
+  document.getElementById('team-form').innerHTML = html;
+  updateBudget();
+  renderTeamHistory();
+}
+
+function updateBudget(){
+  let total=0;
+  CHANNELS.forEach(c=>{
+    const el=document.getElementById('sl-'+c); if(!el) return;
+    const v=parseInt(el.value); total+=v;
+    document.getElementById('sp-'+c).textContent=v+'%';
+    document.getElementById('se-'+c).textContent=fmt(v*1000);
+  });
+  const tot=document.getElementById('budget-total');
+  if(tot){
+    tot.textContent=total+'% · '+fmt(total*1000);
+    tot.style.color=total===100?'#3B6D11':'#A32D2D';
+    const w=document.getElementById('budget-warning');
+    if(w) w.style.display=total!==100?'block':'none';
+  }
+}
+
+function submitTeam(){
+  if(!currentTeam) return;
+  const r=ROUNDS[state.round]; const tm=state.teams[currentTeam];
+  if(r.dec.includes('budget')){
+    let total=0; const budgets={};
+    CHANNELS.forEach(c=>{ const el=document.getElementById('sl-'+c); if(el){ budgets[c]=parseInt(el.value); total+=parseInt(el.value); }});
+    if(total!==100){ document.getElementById('budget-warning').style.display='block'; return; }
+    tm.budgets[state.round]=budgets;
+  }
+  if(r.dec.includes('ai')){ const el=document.querySelector('input[name="ai"]:checked'); tm.ai[state.round]=el?el.value:'hybrid'; }
+  if(r.dec.includes('targeting')){ const el=document.querySelector('input[name="tgt"]:checked'); tm.targeting[state.round]=el?el.value:'broad'; }
+  if(r.dec.includes('message')){ const el=document.querySelector('input[name="msg"]:checked'); tm.message[state.round]=el?el.value:'emotion'; }
+  if(!tm.submitted.includes(state.round)) tm.submitted.push(state.round);
+  // Sync to Firebase
+  if (window.fbUpdate) {
+    const slotKey = currentTeam.replace(' ','_');
+    const roundData = {
+      submitted: true,
+      budget: tm.budgets[state.round] || {},
+      ai: tm.ai[state.round] || 'hybrid',
+      targeting: tm.targeting[state.round] || 'broad',
+      message: tm.message[state.round] || 'emotion'
+    };
+    window.fbUpdate('game/submissions/' + slotKey + '/rounds/' + state.round, roundData);
+  }
+  document.getElementById('btn-submit').style.display='none';
+  document.getElementById('submit-confirm').style.display='block';
+  renderTeamStatus();
+  renderTeamHistory();
+}
+
+function renderTeamHistory(){
+  if(!currentTeam) return;
+  const hist = document.getElementById('team-history');
+  const rks = state.roundKpi[currentTeam];
+  if(!rks || rks.length===0){ hist.innerHTML=''; return; }
+  hist.innerHTML = `<div class="card">
+    <h3 style="margin-bottom:0.75rem">Your KPI history</h3>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:10px;color:#888;font-weight:500;margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid rgba(0,0,0,0.08)">
+      <div>Round</div>
+      <div style="color:#185FA5">Mkt Share</div>
+      <div style="color:#1D9E75">Trust</div>
+      <div style="color:#534AB7">Reputation</div>
+      <div style="color:#BA7517">Conv.</div>
+    </div>
+    ${rks.map((k,i)=>`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px;font-size:12px;padding:5px 0;border-bottom:0.5px solid rgba(0,0,0,0.05)">
+      <div style="color:#888">R${i+1}</div>
+      <div style="color:#185FA5;font-weight:500">${pct(k.msShare)}</div>
+      <div style="color:#1D9E75;font-weight:500">${Math.round(k.ct)}</div>
+      <div style="color:#534AB7;font-weight:500">${Math.round(k.br)}</div>
+      <div style="color:#BA7517;font-weight:500">${Math.round(k.cr)}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ─── GM PIN ───────────────────────────────────────────────────────────────────
+function showGmPin(){
+  document.getElementById('gm-pin-input').value='';
+  document.getElementById('gm-pin-error').textContent='';
+  document.getElementById('gm-pin-modal').style.display='flex';
+  setTimeout(()=>document.getElementById('gm-pin-input').focus(),100);
+}
+function closeGmPin(){ document.getElementById('gm-pin-modal').style.display='none'; }
+function confirmGmPin(){
+  if(document.getElementById('gm-pin-input').value !== RESET_PIN){
+    document.getElementById('gm-pin-error').textContent='Incorrect PIN. Try again.';
+    document.getElementById('gm-pin-input').value='';
+    return;
+  }
+  closeGmPin();
+  showGamemaster();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+renderTeamStatus();
+renderEventCard();
+renderScoreboard();
+</script>
+</body>
+</html>
